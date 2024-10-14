@@ -1,3 +1,9 @@
 {
-    "print.colourScheme": "GitHub"
+    "print.colourScheme": "GitHub",
+    "python.analysis.typeCheckingMode": "basic",
+    "editor.quickSuggestions": {
+        "other": true,
+        "comments": false,
+        "strings": true
+    }
 }

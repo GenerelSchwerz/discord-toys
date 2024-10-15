@@ -8,9 +8,6 @@ import random
 # fingerprint = cfg.d_fingerprint
 
 
-username = ""
-password = ""
-invite = ""
 fingerprint = "846929804438667274.7Yk69o4NpGUWKRL9LtQdkIllP0M"
 
 
@@ -23,20 +20,6 @@ def create_context():
     ctx.set_alpn_protocols(["h2", "http/1.1"]) 
     ctx.set_ciphers(CIPHERS)
     return ctx
-
-
-async def create_register_payload(email: str) -> dict:
-    return {
-        "fingerprint":fingerprint,
-        "username":username,
-        "email": email,
-        "password": password,
-        "consent": True,
-        "date_of_birth":"1999-03-23",
-        "invite": invite,
-        "gift_code_sku_id":None,
-        #"captcha_key": await solver.single_solve_captcha()
-        }
 
 
 def get_super_prop(os, browser, useragent, browser_version, os_version, client_build):
@@ -82,7 +65,7 @@ def get_basic_headers_with_super_properties(uc):
             'DNT': '1',
             'Connection': 'keep-alive',
             'X-Super-Properties': base64.b64encode(json.dumps(superProp, separators=(',', '.')).encode()).decode(),
-            'X-Fingerprint': '843983133426188298.POtVGUkz77y6aDowN6xTPvVvigQ'
+            'X-Fingerprint': fingerprint#'843983133426188298.POtVGUkz77y6aDowN6xTPvVvigQ'
         }
 
 

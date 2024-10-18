@@ -87,7 +87,7 @@ def get_super_prop(os, browser: str, useragent: str, browser_version: str, os_ve
     }
 
 
-def get_basic_headers_with_super_properties(uc):
+def get_basic_headers_with_super_properties(uc: str):
     if "Windows" in uc:
         os = "Windows"
         osver = "10"

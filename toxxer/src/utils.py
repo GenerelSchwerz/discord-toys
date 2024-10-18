@@ -5,6 +5,8 @@ import aiohttp
 from .types import REPORT_TYPES
 from .report_info import parse_report_data
 
+def clamp(n, smallest, largest):
+    return max(smallest, min(n, largest))
 
 async def get_report_info(
     session: aiohttp.ClientSession, token: str, type: REPORT_TYPES

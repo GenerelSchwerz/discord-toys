@@ -345,3 +345,6 @@ def create_response(report_data: ReportData, last_node_id: int, id_1: str, id_2:
 
     if report_data.name == "user":
         return create_user_response(report_data, last_node_id, id_1, id_2)
+
+    if report_data.name == "guild":
+        return create_guild_response(report_data, last_node_id, id_1)

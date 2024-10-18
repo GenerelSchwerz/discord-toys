@@ -184,10 +184,10 @@ def search_breadcrumb(report_data: ReportData, search_term: str) -> Optional[Nod
     else:
         return None
 
-def dfs_print(report_data: ReportData, node_id: int=-1, depth=0):
+def dfs_print(report_data: ReportData, node_id: int = -1, depth=0):
     if node_id == -1:
         node_id = report_data.root_node_id
-        
+
     # Retrieve the current node using its ID
     node = report_data.nodes.get(node_id)
     if not node:
@@ -197,17 +197,23 @@ def dfs_print(report_data: ReportData, node_id: int=-1, depth=0):
     indent = "  " * depth
     indent_child = "  " * (depth + 1)
 
-    
     # Print the current node's information
-    print(f"{indent}Node ID: {node.id} - Key: {node.key} - Description: {""}")
-    
-    # For each child, print their information and recursively apply DFS
+    print(f"{indent}Node ID: {node.id} - Key: {node.key}")
+
+    # For each child, print their description (from the parent node's children array) and recursively apply DFS
     for child in node.children:
         child_node = report_data.nodes.get(child.node_id)
         if child_node:
-            # print(f"{indent}  Child ID: {child.node_id} - Description: '' - Has Children: {'Yes' if child_node.children else 'No'}")
-            dfs_print(report_data, child.node_id, depth + 1)
+            # Print the child's description from the parent node's children array
+            print(f"{indent_child}Child ID: {child_node.id} - Description: '{child.description}'")
             
+    for child in node.children:
+        if child.node_id != node_id:  # Avoid infinite recursion
+            # Recursively apply DFS for each child node
+            child_node = report_data.nodes.get(child.node_id)
+            if child_node:
+                dfs_print(report_data, child.node_id, depth + 1)
+
             
 # Function to create a response using the last node ID and auto-detect elements
 def create_user_response(report_data: ReportData, last_node_id: int, guild_id: str, user_id: str):

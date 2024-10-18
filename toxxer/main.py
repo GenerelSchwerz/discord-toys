@@ -1,13 +1,16 @@
 import asyncio
 from typing import Literal, Union
 import aiohttp
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 from dataclasses import dataclass
 from enum import Enum
 
 
 from .helper import get_basic_headers_with_super_properties
-
 
 @dataclass
 class ReportParams:

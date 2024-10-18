@@ -114,7 +114,7 @@ def parse_nodes(nodes_data):
 
 
 # Function to parse the full JSON object into ReportData
-def parse_report_data(data):
+def parse_report_data(data: dict):
     return ReportData(
         name=data["name"],
         variant=data["variant"],
@@ -125,29 +125,6 @@ def parse_report_data(data):
         fail_node_id=data["fail_node_id"],
         nodes=parse_nodes(data["nodes"]),
     )
-
-
-# # Function to search for a breadcrumb based on similarity
-# def search_breadcrumb(report_data: ReportData, search_term: str) -> Optional[Node]:
-#     search_term = search_term.lower()
-#     all_breadcrumbs = []
-
-#     # Create a mapping between descriptions and their node IDs
-#     breadcrumb_to_node_map = {}
-#     for node in report_data.nodes.values():
-#         for child in node.children:
-#             description = child.description.lower()
-#             all_breadcrumbs.append(description)
-#             breadcrumb_to_node_map[description] = report_data.nodes[child.node_id]
-
-#     # Use difflib to find the closest match (case-insensitive)
-#     closest_matches = difflib.get_close_matches(search_term, all_breadcrumbs, n=1, cutoff=0.5)
-
-#     if closest_matches:
-#         closest_match = closest_matches[0]
-#         return breadcrumb_to_node_map[closest_match]
-#     else:
-#         return None
 
 
 # Update find_breadcrumbs to correctly traverse from the root to the last node
@@ -199,17 +176,19 @@ def detect_elements(
     return elements_data
 
 
-# Function to search for a breadcrumb based on similarity
-def search_breadcrumb(report_data: ReportData, search_term: str) -> Optional[Node]:
+# Function to search for a breadcrumb based on similarity, considering only leaf nodes
+def search_leaf_breadcrumb(report_data: ReportData, search_term: str) -> Optional[Node]:
     # Create a list of all breadcrumb descriptions
     all_breadcrumbs = []
     breadcrumb_to_node_map = {}
 
-    # Collect breadcrumbs and map them to nodes
+    # Collect breadcrumbs and map them to nodes, only if the node is a leaf (has no children)
     for node in report_data.nodes.values():
         for child in node.children:
-            all_breadcrumbs.append(child.description)
-            breadcrumb_to_node_map[child.description] = report_data.nodes[child.node_id]
+            child_node = report_data.nodes.get(child.node_id)
+            if child_node and not child_node.children:  # Only consider leaf nodes
+                all_breadcrumbs.append(child.description)
+                breadcrumb_to_node_map[child.description] = child_node
 
     # Use difflib to find the closest match
     closest_matches = difflib.get_close_matches(
@@ -221,6 +200,9 @@ def search_breadcrumb(report_data: ReportData, search_term: str) -> Optional[Nod
         return breadcrumb_to_node_map[closest_match]
     else:
         return None
+    
+def get_node(report_data: ReportData, node_id: int) -> Optional[Node]:
+    return report_data.nodes.get(node_id)
 
 
 def dfs_print(report_data: ReportData, node_id: int = -1, depth=0):
@@ -236,11 +218,21 @@ def dfs_print(report_data: ReportData, node_id: int = -1, depth=0):
     indent = "  " * depth
     indent_child = "  " * (depth + 1)
 
+
+
+    actual_children = []
+    actual_children.extend(node.children)
+    
+    # also include targets of buttons
+    if node.button:
+        if node.button.target:
+            actual_children.append(Child(description="Button Target", node_id=node.button.target))
+            
     # Print the current node's information
-    print(f"{indent}Node ID: {node.id} - Key: {node.key}")
+    print(f"{indent}Node ID: {node.id} - Key: {node.key} - Children: {len(actual_children)}")
 
     # For each child, print their description (from the parent node's children array) and recursively apply DFS
-    for child in node.children:
+    for child in actual_children:
         child_node = report_data.nodes.get(child.node_id)
         if child_node:
             # Print the child's description from the parent node's children array
@@ -248,7 +240,7 @@ def dfs_print(report_data: ReportData, node_id: int = -1, depth=0):
                 f"{indent_child}Child ID: {child_node.id} - Description: '{child.description}'"
             )
 
-    for child in node.children:
+    for child in actual_children:
         if child.node_id != node_id:  # Avoid infinite recursion
             # Recursively apply DFS for each child node
             child_node = report_data.nodes.get(child.node_id)
@@ -288,7 +280,7 @@ def create_user_response(
 
 
 def create_message_response(
-    report_data: ReportData, last_node_id: int, guild_id: str, user_id: str
+    report_data: ReportData, last_node_id: int, channel_id: str, message_id: str
 ):
     if report_data.name != "message":
         raise ValueError("Invalid report data name. Expected 'message'.")
@@ -309,8 +301,8 @@ def create_message_response(
         "language": "en",
         "breadcrumbs": breadcrumbs,  # Full breadcrumb trail
         "elements": elements,  # Detected elements based on breadcrumb path
-        "guild_id": guild_id,
-        "user_id": user_id,
+        "channel_id": channel_id,
+        "message_id": message_id,
         "name": "message",
     }
 
@@ -334,6 +326,7 @@ def create_guild_response(report_data: ReportData, last_node_id: int, guild_id: 
         "language": "en",
         "breadcrumbs": breadcrumbs,
         "elements": elements,
+        "guild_id":guild_id
     }
 
     return response
@@ -348,3 +341,6 @@ def create_response(report_data: ReportData, last_node_id: int, id_1: str, id_2:
 
     if report_data.name == "guild":
         return create_guild_response(report_data, last_node_id, id_1)
+
+    
+    raise ValueError("Invalid report data name. Expected 'message', 'user', or 'guild'.")

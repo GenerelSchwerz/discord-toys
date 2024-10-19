@@ -2,8 +2,8 @@ from typing import Optional
 import aiohttp
 import asyncio
 
-from constants import REPORT_TYPES
-from report_info import parse_report_data
+from .constants import REPORT_TYPES
+from .report_info import parse_report_data
 
 
 def clamp(n, smallest, largest):
@@ -120,18 +120,18 @@ async def check_message_exists(
     return False
 
 
-if __name__ == "__main__":
-
-    async def main():
-        session = aiohttp.ClientSession()
-        token = "token"
-
-        exist = await check_message_exists(
-            session,
-            token,
-            "https://discord.com/channels/@me/1278485998170538004/1296179491756048455",
-        )
-        print(exist)
-        await session.close()
-
-    asyncio.run(main())
+# if __name__ == "__main__":
+#
+#     async def main():
+#         session = aiohttp.ClientSession()
+#         token = "token"
+#
+#         exist = await check_message_exists(
+#             session,
+#             token,
+#             "https://discord.com/channels/@me/1278485998170538004/1296179491756048455",
+#         )
+#         print(exist)
+#         await session.close()
+#
+#     asyncio.run(main())

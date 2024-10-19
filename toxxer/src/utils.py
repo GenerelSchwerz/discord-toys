@@ -2,8 +2,8 @@ from typing import Optional
 import aiohttp
 import asyncio
 
-from .constants import REPORT_TYPES
-from .report_info import parse_report_data
+from constants import REPORT_TYPES
+from report_info import parse_report_data
 
 
 def clamp(n, smallest, largest):
@@ -52,13 +52,12 @@ def parse_message_link(url: str) -> tuple[str, str, str]:
 async def get_messages(
     session: aiohttp.ClientSession,
     token: str,
-    guild_id: str,
     channel_id: str,
     offset: Optional[int] = None,
 ):
-    url = f"https://discord.com/api/v9/guilds/{guild_id}/messages/search?channel_id={channel_id}"
+    url = f"https://discord.com/api/v9/channels/{channel_id}/messages/search"
     if offset != None:
-        url += f"&offset={offset}"
+        url += f"?offset={offset}"
     headers = {
         # 'accept': '*/*',
         # 'accept-language': 'en-US,en;q=0.9',
@@ -91,15 +90,15 @@ async def get_messages(
                 await asyncio.sleep(json["retry_after"])
 
             else:
+                print((await resp.json()))
                 return {}
 
 
 async def check_message_exists(
     session: aiohttp.ClientSession, token: str, msg_link: str
 ):
-    guild_id, channel_id, message_id = parse_message_link(msg_link)
-    raw_json = await get_messages(session, token, guild_id, channel_id)
-
+    _, channel_id, message_id = parse_message_link(msg_link)
+    raw_json = await get_messages(session, token, channel_id)
     if raw_json == {}:
         return False
 
@@ -108,32 +107,31 @@ async def check_message_exists(
 
     jsons = await asyncio.gather(
         *(
-            get_messages(session, token, guild_id, channel_id, offset=i * 25)
+            get_messages(session, token, channel_id, offset=i * 25)
             for i in range(0, attempts)
         )
     )
 
     # Discord for some reason has every message in its own list
     messages = [m for json in jsons for msg in json.get("messages", []) for m in msg]
-
     for msg in messages:
         if msg.get("id", "0") == message_id:
             return True
     return False
 
 
-# if __name__ == "__main__":
-#
-#     async def main():
-#         session = aiohttp.ClientSession()
-#         token = "tok"
-#
-#         exist = await check_message_exists(
-#             session,
-#             token,
-#             "https://discord.com/channels/1289687619403513980/1289707709972873289/1289978667799412788",
-#         )
-#         print(exist)
-#         await session.close()
-#
-#     asyncio.run(main())
+if __name__ == "__main__":
+
+    async def main():
+        session = aiohttp.ClientSession()
+        token = "token"
+
+        exist = await check_message_exists(
+            session,
+            token,
+            "https://discord.com/channels/@me/1278485998170538004/1296179491756048455",
+        )
+        print(exist)
+        await session.close()
+
+    asyncio.run(main())

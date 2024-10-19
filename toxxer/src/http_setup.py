@@ -5,7 +5,7 @@ import random
 
 import aiohttp
 
-from .types import REPORT_TYPES
+from .constants import REPORT_TYPES
 
 # username    = cfg.username
 # password    = cfg.password
@@ -28,10 +28,13 @@ def create_context():
 
 import re
 
+
 def get_sec_ch_from_user_agent(user_agent: str) -> dict:
     # Patterns to extract browser name and version
     browser_pattern = re.compile(r"(Chrome|Firefox|Safari|Edge|Opera)[/\s]?([\d.]*)")
-    platform_pattern = re.compile(r"\(([^)]+)\)")  # Extracts platform from the parentheses in user-agent
+    platform_pattern = re.compile(
+        r"\(([^)]+)\)"
+    )  # Extracts platform from the parentheses in user-agent
 
     # Extract browser and platform information
     browser_match = browser_pattern.search(user_agent)
@@ -63,13 +66,20 @@ def get_sec_ch_from_user_agent(user_agent: str) -> dict:
         "sec-ch-ua": sec_ch_ua,
         "sec-ch-ua-mobile": "?1" if is_mobile else "?0",
         "sec-ch-ua-platform": f'"{platform}"',
-        "user-agent": user_agent
+        "user-agent": user_agent,
     }
 
     return sec_ch_headers
 
 
-def get_super_prop(os, browser: str, useragent: str, browser_version: str, os_version: str, client_build: int):
+def get_super_prop(
+    os,
+    browser: str,
+    useragent: str,
+    browser_version: str,
+    os_version: str,
+    client_build: int,
+):
     return {
         "os": os,
         "browser": browser,
@@ -128,4 +138,3 @@ def get_linux_useragent():
         "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2.4) Gecko/20100625 Gentoo Firefox/3.6.4",
     ]
     return choices[random.randint(0, len(choices) - 1)]
-

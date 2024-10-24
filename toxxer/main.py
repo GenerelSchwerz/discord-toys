@@ -70,8 +70,7 @@ async def main():
 
     # Run the async function
     # only needs to be ran once.
-    raw_data = await get_report_info(client, token, report_type)
-    report_data = parse_report_data(raw_data)
+    report_data = await get_report_info(client, token, report_type)
 
     dfs_print(report_data)
 

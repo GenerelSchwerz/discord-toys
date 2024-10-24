@@ -1,7 +1,7 @@
 # Custom
 noir/
 toxxer/token_list.txt
-token-checker/tokens.txt
+token-checker/*tokens.txt
 
 proxies/urbanvpn
 
